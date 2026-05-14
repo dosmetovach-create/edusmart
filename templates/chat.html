@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSmart AI | Чат</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Весь твой красивый дизайн остается без изменений */
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: url('/static/backiee-314483.jpg') no-repeat center center fixed;
+            background-size: cover;
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            color: white;
+        }
+        .nav-bar {
+            background: rgba(10, 10, 10, 0.4);
+            backdrop-filter: blur(20px);
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .nav-links { display: flex; gap: 20px; }
+        .nav-btn {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border-radius: 12px;
+            transition: 0.3s;
+        }
+        .nav-btn:hover { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-btn.active { background: rgba(79, 172, 254, 0.2); color: #4facfe; }
+        .chat-container {
+            flex-grow: 1;
+            max-width: 900px;
+            margin: 20px auto;
+            width: 95%;
+            background: rgba(10, 10, 10, 0.5);
+            backdrop-filter: blur(30px);
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.4);
+        }
+        #chatBox {
+            flex-grow: 1;
+            padding: 25px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .message { max-width: 80%; padding: 15px 20px; border-radius: 20px; line-height: 1.5; font-size: 15px; }
+        .user-msg { align-self: flex-end; background: #4facfe; color: white; border-bottom-right-radius: 5px; }
+        .ai-msg { align-self: flex-start; background: rgba(255, 255, 255, 0.08); border-bottom-left-radius: 5px; }
+        .input-area {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.03);
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+        input[type="text"] {
+            flex-grow: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 20px;
+            border-radius: 15px;
+            color: white;
+            outline: none;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 20px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .icon-btn:hover { color: #4facfe; transform: scale(1.1); }
+        .send-btn {
+            background: #4facfe;
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="nav-bar">
+        <div style="font-weight: 700; font-size: 20px; letter-spacing: -0.5px;">EduSmart <span style="color: #4facfe;">AI</span></div>
+        <div class="nav-links">
+            <a href="/chat" class="nav-btn active"><i class="fas fa-comment"></i> Чат</a>
+            <a href="/tracker" class="nav-btn"><i class="fas fa-tasks"></i> Трекер</a>
+            <a href="/focus" class="nav-btn"><i class="fas fa-stopwatch"></i> Фокус</a>
+            <a href="/logout" class="nav-btn"><i class="fas fa-sign-out-alt"></i> Выход</a>
+        </div>
+    </div>
+
+    <div class="chat-container">
+        <div id="chatBox">
+            <div class="message ai-msg">Привет! Я теперь работаю безопасно. Готова продолжить?</div>
+        </div>
+
+        <div class="input-area">
+            <label class="icon-btn">
+                <i class="fas fa-paperclip"></i>
+                <input type="file" id="fileInput" hidden onchange="uploadImage()">
+            </label>
+            <input type="text" id="userInput" placeholder="Спроси о чем угодно..." onkeypress="if(event.key==='Enter') sendMessage()">
+            <button class="send-btn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <script>
+        // Мы удалили прямые вызовы API из JavaScript. 
+        // Теперь скрипт просто отправляет текст на твой сервер Flask (/ask), 
+        // а Flask уже сам общается с Groq, используя секретный ключ.
+        
+        async function sendMessage() {
+            const input = document.getElementById('userInput');
+            const msg = input.value.trim();
+            if(!msg) return;
+
+            appendMsg(msg, 'user-msg');
+            input.value = '';
+
+            try {
+                const res = await fetch('/ask', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({message: msg})
+                });
+                const data = await res.json();
+                appendMsg(data.answer, 'ai-msg');
+            } catch (e) {
+                appendMsg("Ошибка связи с сервером.", 'ai-msg');
+            }
+        }
+
+        async function uploadImage() {
+            const file = document.getElementById('fileInput').files[0];
+            if(!file) return;
+
+            const formData = new FormData();
+            formData.append('file', file);
+            appendMsg("🖼️ Анализирую фото...", 'user-msg');
+
+            try {
+                const res = await fetch('/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                appendMsg(data.answer, 'ai-msg');
+            } catch (e) {
+                appendMsg("Не удалось загрузить изображение.", 'ai-msg');
+            }
+        }
+
+        function appendMsg(text, type) {
+            const box = document.getElementById('chatBox');
+            const div = document.createElement('div');
+            div.className = `message ${type}`;
+            div.innerText = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // Таймер фокуса в фоне
+        setInterval(() => {
+            let isRunning = localStorage.getItem('focusRunning') === 'true';
+            if (isRunning) {
+                let timeLeft = parseInt(localStorage.getItem('focusTime')) || 0;
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    localStorage.setItem('focusTime', timeLeft);
+                } else {
+                    localStorage.setItem('focusRunning', 'false');
+                    alert("Время фокусировки вышло!");
+                }
+            }
+        }, 1000);
+    </script>
+</body>
+</html>

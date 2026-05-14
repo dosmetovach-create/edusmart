@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Регистрация — EduSmart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="auth-body" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #1a1a2e;">
+    <div class="glass-container" style="padding: 40px; width: 300px; text-align: center;">
+        <h2 style="color: white; margin-bottom: 20px;">Регистрация</h2>
+        {% if error %}<p style="color: #ff4b2b;">{{ error }}</p>{% endif %}
+        <form method="POST">
+            <input type="email" name="email" placeholder="Email" required style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
+            <input type="password" name="password" placeholder="Пароль" required style="width: 100%; padding: 10px; margin-bottom: 15px; border-radius: 8px;">
+            <button type="submit" style="width: 100%; padding: 10px; background: #4facfe; color: white; border: none; border-radius: 8px; cursor: pointer;">Создать аккаунт</button>
+        </form>
+        <p style="color: white; margin-top: 15px;">Уже есть аккаунт? <a href="/login" style="color: #4facfe;">Войти</a></p>
+    </div>
+</body>
+</html>

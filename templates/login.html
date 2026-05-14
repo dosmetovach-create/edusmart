@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход — EduSmart</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="auth-body" style="display: flex; justify-content: center; align-items: center; height: 100vh; background: #1a1a2e;">
+    
+    <div class="glass-container" style="padding: 40px; width: 340px; text-align: center; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 25px; border: 1px solid rgba(255, 255, 255, 0.1); box-shadow: 0 25px 50px rgba(0,0,0,0.3);">
+        
+        <div style="margin-bottom: 30px;">
+            <div style="font-size: 28px; font-weight: 800; color: white; letter-spacing: -1px;">
+                EduSmart <span style="color: #4facfe;">AI</span>
+            </div>
+            <p style="color: rgba(255, 255, 255, 0.5); font-size: 14px; margin-top: 10px;">Добро пожаловать обратно!</p>
+        </div>
+
+        {% if error %}
+            <p style="color: #ff4a4a; background: rgba(255, 74, 74, 0.1); padding: 10px; border-radius: 10px; font-size: 14px;">
+                {{ error }}
+            </p>
+        {% endif %}
+
+        <form method="POST" action="/login">
+            <div style="position: relative; margin-bottom: 15px;">
+                <input type="email" name="email" placeholder="Email" required 
+                    style="width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; outline: none;">
+            </div>
+            
+            <div style="position: relative; margin-bottom: 10px;">
+                <input type="password" name="password" placeholder="Пароль" required 
+                    style="width: 100%; padding: 12px 15px; background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; color: white; outline: none;">
+            </div>
+
+            <div style="text-align: right; margin-bottom: 20px;">
+                <a href="/reset_password" style="color: rgba(255, 255, 255, 0.4); font-size: 12px; text-decoration: none; transition: 0.3s;" onmouseover="this.style.color='#4facfe'" onmouseout="this.style.color='rgba(255, 255, 255, 0.4)'">Забыли пароль?</a>
+            </div>
+
+            <button type="submit" 
+                style="width: 100%; padding: 14px; background: linear-gradient(135deg, #4facfe, #00f2fe); color: white; border: none; border-radius: 12px; font-weight: 600; cursor: pointer; transition: 0.3s; box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);">
+                Войти в систему
+            </button>
+        </form>
+
+        <div style="margin-top: 25px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 20px;">
+            <p style="color: white; font-size: 14px;">
+                Нет аккаунта? <a href="/register" style="color: #4facfe; text-decoration: none; font-weight: 600;">Создать</a>
+            </p>
+        </div>
+    </div>
+
+</body>
+</html>

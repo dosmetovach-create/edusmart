@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduSmart Pro | Трекер Продуктивности</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        /* Расширенные стили для анимации и визуала */
+        .loading-shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0.03) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.03) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+            color: rgba(255,255,255,0.4);
+            font-style: italic;
+            background: rgba(255,255,255,0.02);
+            border-radius: 20px;
+            margin-top: 20px;
+            border: 1px dashed rgba(255,255,255,0.1);
+        }
+        .task-card {
+            animation: slideUp 0.4s ease-out forwards;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bar {
+            transition: height 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* Стили для скроллбара как на твоем скрине */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: rgba(0,0,0,0.1); }
+        ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <nav class="nav-bar">
+        <div class="logo">EduSmart <span>AI</span></div>
+        <div class="nav-links">
+            <a href="/chat"><i class="fas fa-comment-dots"></i> Чат</a>
+            <a href="/tracker" class="active"><i class="fas fa-chart-line"></i> Трекер</a>
+            <a href="/focus"><i class="fas fa-stopwatch"></i> Фокус</a>
+            <a href="/logout" style="opacity: 0.5;"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </nav>
+
+    <main class="main-container">
+        <section class="activity-panel">
+            <div class="activity-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 class="activity-title" style="margin: 0;">Активность недели</h3>
+                <div id="totalStats" style="font-size: 13px; color: #00d2ff; text-shadow: 0 0 10px rgba(0,210,255,0.3); font-weight: 800; letter-spacing: 1px;">
+                    ЗАГРУЗКА...
+                </div>
+            </div>
+            
+            <div class="chart-container" id="chartContainer">
+                <div class="bar-wrapper"><div class="bar loading-shimmer" style="height: 10%"></div><span class="day-label">...</span></div>
+                <div class="bar-wrapper"><div class="bar loading-shimmer" style="height: 20%"></div><span class="day-label">...</span></div>
+                <div class="bar-wrapper"><div class="bar loading-shimmer" style="height: 15%"></div><span class="day-label">...</span></div>
+                <div class="bar-wrapper"><div class="bar loading-shimmer" style="height: 30%"></div><span class="day-label">...</span></div>
+                <div class="bar-wrapper"><div class="bar loading-shimmer" style="height: 10%"></div><span class="day-label">...</span></div>
+                <div class="bar-wrapper"><div class="bar loading-shimmer" style="height: 25%"></div><span class="day-label">...</span></div>
+                <div class="bar-wrapper"><div class="bar loading-shimmer" style="height: 15%"></div><span class="day-label">...</span></div>
+            </div>
+        </section>
+
+        <section class="input-group">
+            <input type="text" id="taskInput" placeholder="Какая задача на сегодня? (диплом, книга, Коран...)" onkeypress="handleKeyPress(event)">
+            <button class="add-btn" onclick="addTask()">
+                <i class="fas fa-plus"></i>
+            </button>
+        </section>
+
+        <div id="taskList" style="margin-top: 10px;">
+            </div>
+    </main>
+
+    <script>
+        // --- 1. ЗАГРУЗКА АКТИВНОСТИ (SQL ГРАФИК) ---
+        async function loadActivity() {
+            try {
+                const response = await fetch('/get_activity');
+                const data = await response.json();
+                const container = document.getElementById('chartContainer');
+                const totalStats = document.getElementById('totalStats');
+                
+                container.innerHTML = '';
+                const days = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
+                let totalCount = 0;
+            
+                days.forEach((dayName, index) => {
+                    // Синхронизация: JS (0-Вс, 1-Пн...) -> Наш график (0-Пн, 1-Вт...)
+                    const dayIndex = (index + 1) % 7; 
+                    const record = data.find(item => new Date(item.date).getDay() === dayIndex);
+                    
+                    const count = record ? record.tasks_done : 0;
+                    totalCount += count;
+            
+                    // Динамическая высота столбика (1 задача = 20% высоты)
+                    const height = Math.min((count * 20) + 5, 100);
+                    
+                    container.innerHTML += `
+                        <div class="bar-wrapper" title="Выполнено задач: ${count}">
+                            <div class="bar" style="height: ${height}%"></div>
+                            <span class="day-label">${dayName}</span>
+                        </div>
+                    `;
+                });
+            
+                if (totalStats) totalStats.innerText = `ВСЕГО ЗА НЕДЕЛЮ: ${totalCount}`;
+            } catch (err) {
+                console.error("Критический сбой аналитики:", err);
+            }
+        }
+
+        // --- 2. ЗАГРУЗКА СПИСКА ЗАДАЧ ---
+        async function loadTasks() {
+            const list = document.getElementById('taskList');
+            try {
+                const response = await fetch('/get_tasks');
+                const tasks = await response.json();
+                
+                if (tasks.length === 0) {
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <i class="fas fa-feather-alt" style="display:block; font-size: 30px; margin-bottom: 10px; opacity: 0.5;"></i>
+                            Список пуст. Добавь первую задачу выше!
+                        </div>`;
+                    return;
+                }
+
+                list.innerHTML = '';
+                tasks.forEach((task, index) => {
+                    const card = document.createElement('div');
+                    card.className = `task-card ${task.is_done ? 'done' : ''}`;
+                    card.style.animationDelay = `${index * 0.05}s`; // Плавное появление по очереди
+                    
+                    card.innerHTML = `
+                        <div class="task-info">
+                            <div class="task-text">${task.text}</div>
+                            <div class="task-date">
+                                <i class="far fa-calendar-check"></i> ${task.date_display}
+                            </div>
+                        </div>
+                        <div class="actions">
+                            <button class="action-btn btn-check" onclick="toggleTask('${task.id}', ${task.is_done})" title="Выполнить">
+                                <i class="fas ${task.is_done ? 'fa-rotate-left' : 'fa-check'}"></i>
+                            </button>
+                            <button class="action-btn btn-del" onclick="deleteTask('${task.id}')" title="Удалить">
+                                <i class="fas fa-trash-can"></i>
+                            </button>
+                        </div>
+                    `;
+                    list.appendChild(card);
+                });
+            } catch (error) {
+                list.innerHTML = '<div class="empty-state" style="color: #ff4a4a;">Ошибка связи с сервером.</div>';
+            }
+        }
+
+        // --- 3. ЛОГИКА ПЕРЕКЛЮЧЕНИЯ ГАЛОЧКИ (ОЖИВЛЯЕТ ГРАФИК) ---
+        async function toggleTask(id, currentStatus) {
+            try {
+                const res = await fetch('/toggle_task', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, is_done: !currentStatus })
+                });
+
+                if (res.ok) {
+                    // ПЕРЕЗАГРУЗКА ДАННЫХ ДЛЯ ОБНОВЛЕНИЯ ГРАФИКА
+                    await loadTasks();
+                    await loadActivity(); 
+                }
+            } catch (err) {
+                alert("Ошибка при обновлении статуса");
+            }
+        }
+
+        // --- 4. ДОБАВЛЕНИЕ И УДАЛЕНИЕ ---
+        async function addTask() {
+            const input = document.getElementById('taskInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            const res = await fetch('/add_task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text: text })
+            });
+
+            if (res.ok) {
+                input.value = '';
+                await loadTasks();
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm("Удалить задачу безвозвратно?")) return;
+            const res = await fetch('/delete_task', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: id })
+            });
+            if (res.ok) {
+                await loadTasks();
+                await loadActivity();
+            }
+        }
+
+        function handleKeyPress(e) {
+            if (e.key === 'Enter') addTask();
+        }
+
+        // ЗАПУСК СИСТЕМЫ ПРИ ЗАГРУЗКЕ
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTasks();
+            loadActivity();
+        });
+    </script>
+</body>
+</html>
