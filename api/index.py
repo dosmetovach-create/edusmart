@@ -34,25 +34,30 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Лимит 16MB
 # 2. ИНИЦИАЛИЗАЦИЯ ВНЕШНИХ СЕРВИСОВ (SUPABASE & GROQ)
 # =================================================================
 
-# --- КОНФИГУРАЦИЯ API СЕРВИСОВ ---
+# Вместо старого блока try-except в начале:
 SUPABASE_URL = "https://sdjrwxsdcgnhklzpxpdd.supabase.co"
-
-# Берем ключи из тех переменных, которые ты добавила в Vercel
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
-try:
-    # Важно: используем .strip(), чтобы убрать лишние пробелы, если они попали при копировании
-    supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY.strip())
-    ai_client = Groq(api_key=GROQ_API_KEY.strip())
-    logger.info("EduSmart Core Engine: Успешная синхронизация.")
-except Exception as e:
-    logger.error(f"Сбой инициализации систем: {e}")
-def get_supabase_client() -> Client:
-    if not SUPABASE_KEY:
-        logger.critical("Критический сбой: SUPABASE_KEY не найден!")
-        raise RuntimeError("Cloud Database Key Missing")
-    return create_client(SUPABASE_URL, SUPABASE_KEY)
+# Инициализируем переменные как None
+supabase: Client = None
+ai_client: Groq = None
+
+def init_services():
+    global supabase, ai_client
+    if not SUPABASE_KEY or not GROQ_API_KEY:
+        logger.error("API ключи не найдены в переменных окружения!")
+        return
+
+    try:
+        supabase = create_client(SUPABASE_URL, SUPABASE_KEY.strip())
+        ai_client = Groq(api_key=GROQ_API_KEY.strip())
+        logger.info("EduSmart Core Engine: Успешная синхронизация.")
+    except Exception as e:
+        logger.error(f"Ошибка при подключении к сервисам: {e}")
+
+# Вызываем инициализацию
+init_services()
 
 def get_ai_client() -> Groq:
     if not GROQ_API_KEY:
