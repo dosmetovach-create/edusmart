@@ -14,9 +14,8 @@ app.secret_key = os.environ.get("FLASK_SECRET_KEY", "edusmart_ultra_deep_secret_
 app.permanent_session_lifetime = timedelta(days=7)
 
 # --- КОНФИГУРАЦИЯ API СЕРВИСОВ ---
-SUPABASE_URL = "https://sdjrwxsdcgnhklzpxpdd.supabase.co"
-SUPABASE_KEY = "sb_publishable_nB7DU3zObCYPAFmQWJ_ZVg_YfRKDd9E"
-GROQ_API_KEY = "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"
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 
 try:
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_KEY)
