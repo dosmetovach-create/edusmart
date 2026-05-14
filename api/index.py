@@ -1,14 +1,10 @@
 import os
-import logging
-import uuid
-import hashlib
-from datetime import datetime, timedelta
-from functools import wraps
 
-from flask import Flask, render_template, request, redirect, url_for, session, jsonify, abort
-from supabase import create_client, Client
-from groq import Groq
-from werkzeug.exceptions import HTTPException
+# Указываем Flask, где искать папки templates и static относительно файла index.py
+base_dir = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, 
+            template_folder=os.path.join(base_dir, '../templates'),
+            static_folder=os.path.join(base_dir, '../static'))
 
 # =================================================================
 # 1. ГЛОБАЛЬНАЯ КОНФИГУРАЦИЯ И СИСТЕМА ЛОГИРОВАНИЯ
