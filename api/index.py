@@ -34,6 +34,7 @@ app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # Лимит 16MB
 # 2. ИНИЦИАЛИЗАЦИЯ ВНЕШНИХ СЕРВИСОВ (SUPABASE & GROQ)
 # =================================================================
 
+# Сделай так:
 SUPABASE_URL = "https://sdjrwxsdcgnhklzpxpdd.supabase.co"
 SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
