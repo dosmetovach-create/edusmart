@@ -1,0 +1,23 @@
+{
+  "name": "edusmart",
+  "version": "1.0.0",
+  "description": "EduSmart AI - Intelligent Educational Platform",
+  "main": "api/index.py",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dosmetovach-create/edusmart.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/dosmetovach-create/edusmart/issues"
+  },
+  "homepage": "https://github.com/dosmetovach-create/edusmart#readme",
+  "dependencies": {
+    "@vercel/speed-insights": "^2.0.0"
+  }
+}
